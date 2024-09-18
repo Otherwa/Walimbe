@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h2>Welcome, {{ user.username }}</h2>
+      <p>You are logged in as a {{ user.role }}</p>
+
+      {% if user.role == "professor" %}
+      <h3>Professor Actions</h3>
+      <ul>
+        <li><a href="{{ url_for('take_attendance') }}">Take Attendance</a></li>
+        <li>
+          <a href="{{ url_for('view_attendance_sessions') }}"
+            >Attendance Session</a
+          >
+        </li>
+      </ul>
+      {% elif user.role == "student" %}
+      <h3>Student Actions</h3>
+      <ul>
+        <!-- Option 1: Upload photo -->
+        <li>
+          <form
+            action="{{ url_for('upload_photo') }}"
+            method="POST"
+            enctype="multipart/form-data"
+          >
+            <label>Upload your photo for face recognition</label>
+            <input type="file" name="photo" accept="image/*" />
+            <button type="submit">Upload Photo</button>
+          </form>
+        </li>
+
+        <!-- Option 2: Capture photo using webcam -->
+        <li>
+          <form action="{{ url_for('capture_photo') }}" method="POST">
+            <button type="submit">Capture Photo from Webcam</button>
+          </form>
+        </li>
+      </ul>
+      {% endif %}
+
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Take Attendance</title>
+  </head>
+  <body>
+    <h1>Take Attendance</h1>
+    <form id="attendance-form">
+      <label for="session_name">Session Name:</label>
+      <input type="text" id="session_name" name="session_name" required />
+      <label for="date">Date:</label>
+      <input type="date" id="date" name="date" required />
+      <label for="time">Time:</label>
+      <input type="time" id="time" name="time" required />
+      <button type="submit">Start Taking Attendance</button>
+      <button type="button" id="stop-attendance">Stop Attendance</button>
+    </form>
+    <br />
+    <video id="video" width="640" height="480" autoplay></video>
+    <ul id="attendance-list"></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.min.js"></script>
+    <script>
+      const socket = io();
+      const video = document.getElementById("video");
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+
+      let capturing = false;
+
+      document
+        .getElementById("attendance-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          const session_name = document.getElementById("session_name").value;
+          const date = document.getElementById("date").value;
+          const time = document.getElementById("time").value;
+
+          socket.emit("start_attendance_session", {
+            session_name: session_name,
+            date: date,
+            time: time,
+          });
+
+          capturing = true;
+          startVideo();
+        });
+
+      document
+        .getElementById("stop-attendance")
+        .addEventListener("click", function () {
+          capturing = false;
+          socket.emit("stop_attendance_session");
+          stopVideo();
+        });
+
+      socket.on("face_data", function (data) {
+        const list = document.getElementById("attendance-list");
+        list.innerHTML = ""; // Clear previous data
+        data.faces.forEach((face) => {
+          const listItem = document.createElement("li");
+          listItem.textContent = face;
+          list.appendChild(listItem);
+        });
+      });
+
+      function startVideo() {
+        navigator.mediaDevices
+          .getUserMedia({ video: true })
+          .then((stream) => {
+            video.srcObject = stream;
+
+            const track = stream.getVideoTracks()[0];
+            const imageCapture = new ImageCapture(track);
+
+            if (capturing) {
+              setInterval(() => {
+                imageCapture
+                  .grabFrame()
+                  .then((imageBitmap) => {
+                    canvas.width = imageBitmap.width;
+                    canvas.height = imageBitmap.height;
+                    context.drawImage(imageBitmap, 0, 0);
+                    canvas.toBlob((blob) => {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        const arrayBuffer = reader.result;
+                        socket.emit("frame", arrayBuffer);
+                      };
+                      reader.readAsArrayBuffer(blob);
+                    }, "image/jpeg");
+                  })
+                  .catch((err) => console.error("Error capturing frame:", err));
+              }, 1000); // Send a frame every second
+            }
+          })
+          .catch((err) => console.error("Error accessing webcam:", err));
+      }
+
+      function stopVideo() {
+        const stream = video.srcObject;
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop());
+          video.srcObject = null;
+        }
+      }
+    </script>
+  </body>
+</html>

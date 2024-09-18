@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Attendance</title>
+  </head>
+  <body>
+    <h1>Edit Attendance</h1>
+    <form action="" method="post">
+      <label for="session_name">Session Name:</label>
+      <input
+        type="text"
+        id="session_name"
+        name="session_name"
+        value="{{ session['session_name'] }}"
+        required
+      />
+      <br />
+      <label for="date">Date:</label>
+      <input
+        type="date"
+        id="date"
+        name="date"
+        value="{{ session['date'] }}"
+        required
+      />
+      <br />
+      <label for="time">Time:</label>
+      <input
+        type="time"
+        id="time"
+        name="time"
+        value="{{ session['time'] }}"
+        required
+      />
+      <br />
+      <label for="students">Students:</label>
+      <input
+        type="text"
+        id="students"
+        name="students"
+        value="{{ session['students'] | join(', ') }}"
+      />
+      <br />
+      <button type="submit">Save Changes</button>
+    </form>
+    <p><a href="/attendance_sessions">Back to Attendance Sessions</a></p>
+  </body>
+</html>
