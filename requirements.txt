@@ -4,6 +4,6 @@ Flask-Login
 Flask-SocketIO
 face_recognition
 opencv-python
-numpy0
+numpy
 pandas
 werkzeug
